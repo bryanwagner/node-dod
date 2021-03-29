@@ -93,7 +93,7 @@ ECS systems are best implemented as arrays of data transformations where compone
 
 A useful resource when thinking about software performance is [Latency Numbers Every Programmer Should Know](https://gist.github.com/jboner/2841832). These are back-of-the-envelope figures which are generally true across modern computing architectures. Differences between orders of magnitude between different types of cache and memory can be startling when viewing them as animations.
 
-In addition to maximizing memory cache locality, Data-Oriented solutions also tend to maximize instruction cache (icache) locality, since they perform the same operations many times one or more arrays when calculating a "system component".
+In addition to maximizing memory cache locality, Data-Oriented solutions also tend to maximize instruction cache (icache) locality, since they perform the same operations many times on one or more arrays when calculating a "system component".
 
 Data-Oriented Design is an approach to highly computational problems, but using it as a conceptual tool can be just as useful. For example, using a SQL statement to only select one column from a database as opposed to using an ORM mapped to a full data model will result in different performance profiles.
 
