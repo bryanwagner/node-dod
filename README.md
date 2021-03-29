@@ -181,7 +181,7 @@ If we want to optimize this problem further, we're just scratching the surface. 
 
 But using Data-Oriented approaches on 32-bit float arrays allows compilers, JIT compilers, and hotspot optimizers to perform [Automatic vectorization](https://en.wikipedia.org/wiki/Automatic_vectorization). When a compiler auto-vectorizes, it automatically converts instructions to SIMD instructions. In ideal situations this can makes tight loops 4, 8, or 16 times faster. Auto-vectorization can be inconsistent, however, since it might only activate for simple loops. Generally, it's nice to have, but we shouldn't rely on it.
 
-Access to SIMD has been targetted by [WebAssembly SIMD](https://github.com/WebAssembly/simd). In particular, one nice abstraction library is [@thi.ng/simd
+Access to SIMD has been targeted by [WebAssembly SIMD](https://github.com/WebAssembly/simd). In particular, one nice abstraction library is [@thi.ng/simd
 ](https://www.npmjs.com/package/@thi.ng/simd) which compiles using [AssemblyScript](https://www.assemblyscript.org/). Currently, SIMD is accessible through @thi.ng/simd from Node version 14.6.0.
 
 Finally, if our problem is highly parallelizable, we can consider frameworks like [CUDA](https://developer.nvidia.com/cuda-toolkit) that leverage the GPU.
