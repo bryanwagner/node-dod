@@ -4,9 +4,9 @@ Performs an Object-Oriented Design vs. Data-Oriented Design benchmark for the pr
 
 ## Quickstart
 
-We're using the more recent version of Node.js because some other experiments were performed using [n-api](https://nodejs.org/api/n-api.html) and [@thi.ng/simd](https://www.npmjs.com/package/@thi.ng/simd). To run:
+We're using the more recent versions of Node.js because some other experiments were performed using [n-api](https://nodejs.org/api/n-api.html) and [@thi.ng/simd](https://www.npmjs.com/package/@thi.ng/simd). To run:
 
-```
+```bash
 $ nvm use 15.12.0
 $ npm install
 $ node index.js
@@ -14,13 +14,9 @@ $ node index.js
 
 ## Problem Domain
 
-OHLC Sample data for Bitcoin (BTC/USD) was downloaded in CSV format from [Crytpo Data Download](http://www.cryptodatadownload.com/data/gemini/).
+[Technical Analysis](https://en.wikipedia.org/wiki/Technical_analysis) is a concept in the financial markets, such as stock market and cryptocurrency exchanges, referring to studies of transformations of trade price and volume. We use this domain to implement a benchmark that tests two orthogonal software design approaches: [Object-Oriented Design](https://en.wikipedia.org/wiki/Object-oriented_design) and [Data-Oriented Design](https://en.wikipedia.org/wiki/Data-oriented_design). The latter approach is lesser known, and became more popular with the efforts of video game engine developers. The objective of Data-Oriented Design is to maximize the throughout of computer hardware processing by designing solutions as a series of data transforms. Due to the [principle of locality](https://en.wikipedia.org/wiki/Locality_of_reference), it can be leveraged at most levels of abstraction, including virtualization.
 
-![](res/hlc3.png)
-
-![](res/osc.png)
-
-[Technical Analysis](https://en.wikipedia.org/wiki/Technical_analysis) calculations:
+OHLC Sample data for Bitcoin (BTC/USD) was downloaded in CSV format from [Crytpo Data Download](http://www.cryptodatadownload.com/data/gemini/). We perform the following calculations using both software design approaches:
 
 * [Typical Price](https://en.wikipedia.org/wiki/Typical_price)
 * [Bollinger Bands](https://en.wikipedia.org/wiki/Bollinger_Bands)
@@ -28,46 +24,19 @@ OHLC Sample data for Bitcoin (BTC/USD) was downloaded in CSV format from [Crytpo
 * [Fast Stochastic](https://en.wikipedia.org/wiki/Stochastic_oscillator)
 * [Money Flow Index](https://en.wikipedia.org/wiki/Money_flow_index)
 
-In order to add to the amount of processing the benchmark does, several calculations are performed to find the median value for several data sets. Finding the median requires a sort, so it is a good problem to stress the opposing designs.
+![](res/hlc3.png)
+
+![](res/osc.png)
+
+To add to the amount of processing the benchmark does, calculations also are performed to find the median value for several data sets. Finding the median requires a data sort, so it is a good problem to stress the benchmark.
 
 ## Analysis
 
-[Data-Oriented Design](https://en.wikipedia.org/wiki/Data-oriented_design)
-
-[Entity Component Systems](https://en.wikipedia.org/wiki/Entity_component_system)
-"For performance, we can learn a lot from video game engine developers"
-* An *entity* is simply represented by an identifier
-* a *component* is a property of an entity or entities represented by data 
-* It is a *system* for which calculations are  updated in batches
-
-ECS systems are best implemented as arrays of data transformations where component data is stored in arrays. Calculation dependencies are ordered semantically between arrays, and transformations happen array-by-array. This is the design implemented by `OhlcSystem`.
-
-"Do I have more than one system?"
-"How do I know just how well numpy is doing" (refer to jboner) [Latency Numbers Every Programmer Should Know](https://gist.github.com/jboner/2841832)
-
-The main point of DoD is, "how do I orient my data in memory to maximize cache locality/minimize access to RAM"
-It could be as simple as using a SQL statement to only select one column from a database as opposed to using an ORM mapped to a full data model.
-It's not just data memory; you should also consider the icache (instructions).
-    Calling the same functions across a loop is faster than calling many functions across the loop (and possibly invalidating the instruction cache)
-
-What kinds of problems?
-Any problem that is processing intensive. Data Transformations, ETL calculations, image processing, machine learning, deeplearning AI, simulation engines.
-
-The kinds of problems this is not a good solution for are generalized scripting, rules-based logic, or event-driven systems such as most web platform backends which model user management with traditional Object-Oriented Design practices. These kinds of problems are more flexible in their design, which is advantageous when the effort to write high-performance software (in the context of CPU-level optimization) has diminishing returns.
+We implement a processing solution using both Object-Oriented Design and Data-Oriented Design. The most important aspect of the approach is choice of memory layout. We consider the difference between [Array-of-Structs and Struct-of-Arrays](https://en.wikipedia.org/wiki/AoS_and_SoA). Array-of-Structs (AoS) design interleaves heterogenous data in groups, whereas Struct-of-Arrays (SoA) design separates homogenous data in arrays. Generally we will consider AoS to be an Object-Oriented approach and SoA to be a Data-Oriented approach.
 
 ### Array-of-Structs: Object-Oriented Design
 
-Model encapsulating OHLC (Open, High, Low, Close) values used in financial markets such as Stock Markets and Cryptocurrency exchanges.
-
-This model demonstrates the [Array-of-Structs](https://en.wikipedia.org/wiki/AoS_and_SoA) memory arrangement.
-
-Note that in typical Object-Oriented Design, the fields would likely have more encapsulation,
-
-but to demonstrate performance differences with Data-Oriented Design and Struct-of-Arrays,
-
-we keep the model flat so it has the least indirection and best chance to compete.
-
-Several calculations range across a window of n-periods.
+To illustrate, we model OHLC (Open, High, Low, Close) price data used in financial markets as a class encapsulation of values.
 
 ```js
 class Ohlc {
@@ -82,19 +51,13 @@ class Ohlc {
 }
 ```
 
+ The actual implementation contains more values, and in a  typical Object-Oriented Design the fields likely would have more encapsulation, but to demonstrate performance differences we keep the model flat so it has the least indirection and best chance to compete.
+
 ### Struct-of-Arrays: Data-Oriented Design
 
-System encapsulating OHLC (Open, High, Low, Close) values used in financial markets such as Stock Markets and Cryptocurrency exchanges.
+The Data-Oriented Design implements a system based on arrays of separate OHLC arrays, i.e. Struct-of-Arrays. It is important to note that the memory is allocated in a common [memory arena](https://en.wikipedia.org/wiki/Region-based_memory_management) which maximizes locality as memory is usually managed by pages in the operating system and we want to avoid segmentation.
 
-This representation demonstrates [Struct-of-Arrays](https://en.wikipedia.org/wiki/AoS_and_SoA) memory arrangement.
-
-SoA is typically modelled as a "system" where operations process over independent arrays.
-
-Here we use all independent arrays (allocated in a common arena), but sometimes data is interleaved due to processing interdependency
-
-(one common example is vertices in 2 or 3 space are typically stored as (x,y) and (x,y,z) pairs, respectively).
-
-Several calculations range across a window of n-periods.
+Also note that it is common for highly interdependent types of data to interleave values in one array, such as 2D and 3D world-space vectors. Here we keep all values separate to illustrate performance differences.
 
 ```js
 class OhlcSystem {
@@ -118,46 +81,59 @@ class OhlcSystem {
 }
 ```
 
+The idea of modelling such an approach as a "system" is based on the concept of [Entity Component Systems](https://en.wikipedia.org/wiki/Entity_component_system).
+
+* An *entity* is represented by an identifier (e.g. an integer ID) that maps to components.
+* A *component* is a property of one or more entities represented by data.
+* It is a *system* for which calculations are  updated in batches.
+
+ECS systems are best implemented as arrays of data transformations where component data is stored in arrays, hence it is an example of a Data-Oriented design approach. Calculation dependencies are ordered semantically between arrays, and transformations happen array-by-array.
+
+### Rationale
+
+A useful resource when thinking about software performance is [Latency Numbers Every Programmer Should Know](https://gist.github.com/jboner/2841832). These are back-of-the-envelope figures which are generally true across modern computing architectures. Differences between orders of magnitude between different types of cache and memory can be startling when viewing them as animations.
+
+In addition to maximizing memory cache locality, Data-Oriented solutions also tend to maximize instruction cache (icache) locality, since they perform the same operations many times one or more arrays when calculating a "system component".
+
+Data-Oriented Design is an approach to highly computational problems, but using it as a conceptual tool can be just as useful. For example, using a SQL statement to only select one column from a database as opposed to using an ORM mapped to a full data model will result in different performance profiles.
+
+Data-Oriented Design is good for any problem that is processing intensive: data transformations, [ETL](https://en.wikipedia.org/wiki/Extract,_transform,_load) calculations, image processing, machine learning, deeplearning AI, simulation engines, and others.
+
+It may not be a good solution for problems that are general or event-driven, such as generalized scripting, rules-based logic, and most web platform backends which model highly interlaced information that must be queried ad-hoc such as user management. In these cases, flexibility is often more advantageous as optimization effort will begin to have diminishing returns.
+
 ## Implementation
 
-[dotenv](https://www.npmjs.com/package/dotenv) for config
+We use a simple Node.js setup:
 
-[winston](https://www.npmjs.com/package/winston) for logging
+* configuration: [dotenv](https://www.npmjs.com/package/dotenv)
+* logging: [winston](https://www.npmjs.com/package/winston)
+* automatic code formatting: [standard.js](https://standardjs.com/)
 
-Used [Standard.js](https://standardjs.com/)
+The entrypoint into the application is `index.js` and logic is delegated to:
 
-The entrypoint into the application is `index.js` and logic is delegated to :
-
-* Utility classes containing static, stateless functions (see `./src/util`)
+* `./src/util` - utility classes containing static, stateless functions
 * `Ohlc` - Object-Oriented model containing data for one OHLC instance
 * `OhlcSystem` - Data-Oriented system (based on ECS) composing arrays of data for a series of OHLCs
 
-Simple project although later tested n-api and SIMD
+After running a benchmark based on the CSV file configured in `.env`, the application runs a Node http server to render charts with [Chart.js](https://www.chartjs.org/).
 
-After benchmark, project runs Node http server to render charts with [Chart.js](https://www.chartjs.org/)
-
-After calculating the data, we sample the data to make chart visualization easier. We sample two ways:
-1. Evenly distributed sample count
-2. (Optionally) the tail of the samples to see the most recent values
-
-(AoS and SoA probably goes here)
-
-We take advantage of Buffer:
-buffer: https://nodejs.org/api/buffer.html
+Chart data is sampled to make chart visualization easier. We sample two ways (see `.env`):
+1. `CHART_SAMPLES` - evenly distributed sample count
+2. `CHART_TAIL` - the most recent sampled values (zero to disable)
 
 ### CSV Parsing Considerations
 
-Used [NodeCSV](https://www.npmjs.com/package/csv)
+Initially, we use [NodeCSV](https://www.npmjs.com/package/csv) to parse the CSV files, but CSV parsing takes a considerable amount of the processing time. To optimize, we also provided a manual parser which is indeed faster, but at maintenance cost. In a real-world solution we should consider:
 
-* considerations about how data is stored (do we need CSV? Perhaps binary data formats are better)
-* considerations about code maintainability
-* CSV format itself has a few gotchas but is not inherently difficult. [RFC 4180](https://tools.ietf.org/html/rfc4180#section-2)
+* What requirements do we have regarding how data is stored? Do we need CSV or can we use a binary format?
+* Using a library greatly reduces future maintenance cost
+* Sometimes, a custom solution is not inherently difficult. The custom solution in `ohlc_utils.js` uses a doubly-nested loop but this logic can be delegated to internal libraries and unit tested. See [RFC 4180](https://tools.ietf.org/html/rfc4180#section-2).
 
-Without opt: (4.98 + 5.10) = 10.08 seconds vs (3.41 + 3.45) = 6.86 seconds, or approximately 1.47 times faster.
+For our large test file, the CSV parser library takes 10.08 seconds to run both benchmarks whereas the custom solution takes 6.86 seconds and is approximately 1.5 times faster. The reason the custom solution is faster likely is because there are far less event-driven callbacks passed between transformers, so there is fewer indirection. The parser can be toggled with the config option `USE_OPTIMIZED_CSV_PARSE`.
 
 ## Results
 
-Example result for `res/gemini_BTCUSD_2020_1min.csv`:
+Example results for `res/gemini_BTCUSD_2020_1min.csv` using `CALC_WINDOW` of 20:
 
 ```json
 stats: {
@@ -175,9 +151,9 @@ stats: {
 }
 ```
 
-Reducing the processing time from 6.01 second to 2.31 seconds is approximately 2.6 times faster for simply reordering the data in memory to leverage CPU cache architectures.
+We are primarily interested in the difference between `calculateAllSeconds` for `ohlcs` (Object-Oriented Design) and `ohlcSystem` (Data-Oriented Design). The former takes 6.01 seconds and the latter takes 2.31 seconds. For simply reordering the data in memory to leverage CPU cache architectures, we can process the data approximately 2.6 times faster.
 
-window sizes: 20 vs 200
+Note that several calculations range across a window of n-periods. This means there is a tight inner-loop that ranges across the window size. Our results are different if we increase the window size to 200:
 
 ```json
 stats: {
@@ -195,27 +171,20 @@ stats: {
 }
 ```
 
-Total time increases, but the ratio is closer: 10.20 seconds vs. 6.14 seconds or 1.66 times faster. Increasing the window size means more time is spent in a tight loop. Since V8 is highly optimized
+In both cases total time increases, but the ratio is closer: 10.20 seconds vs. 6.14 seconds or 1.7 times faster for the Data-Oriented approach. Increasing the window size means more time is spent in cache for both approaches since there is more locality.
 
 ## Further Improvements
 
-If we want to optimize this problem further, we're just scratching the surface. Talk about [Automatice vectorization](https://en.wikipedia.org/wiki/Automatic_vectorization)
+If we want to optimize this problem further, we're just scratching the surface. The first consideration is if we really need 64-bit floats for our calculations. In many cases (including this one) 32-bit floats have enough accuracy for the problem. If we use `Float32Array` instances in `OhlcSystem` instead, we have a higher liklihood of being able to support SIMD.
 
-Note that we could easily turn the Float63 arryas into Float32 arrays (actually, generalize)
-Float32
+[Single instruction, multiple data (SIMD)](https://en.wikipedia.org/wiki/SIMD) implementations are available on almost all modern computing architectures and allow us to exploit instruction-level parallelism. Effectively, SIMD operates on wide registers of 128 bits and higher, which allows us to perform operations such as a single multiplication instruction on four 32-bit floats. Commonly they are accessed via [C Intrinsics](https://software.intel.com/sites/landingpage/IntrinsicsGuide/). One approach to using SIMD in Node.js is to use [n-api](https://nodejs.org/api/n-api.html) to access them natively.
 
-[SIMD](https://en.wikipedia.org/wiki/SIMD)
+But using Data-Oriented approaches on 32-bit float arrays allows compilers, JITs, and hotspot optimizers to perform [Automatic vectorization](https://en.wikipedia.org/wiki/Automatic_vectorization). When a compiler performs auto-vectorizes, it automatically converts instructions to SIMD instructions. In ideal situations this can makes tight loops 4, 8, or 16 times faster. Auto-vectorization can be inconsistent, however, since it might only activate for simple loops. Generally, it's nice to have but we shouldn't be rely on it.
 
-[SIMD Intrinsics](https://software.intel.com/sites/landingpage/IntrinsicsGuide/)
+Access to SIMD has been targetted by [WebAssembly SIMD](https://github.com/WebAssembly/simd). In particular, one nice abstraction library is [@thi.ng/simd
+](https://www.npmjs.com/package/@thi.ng/simd) which compiles using [AssemblyScript](https://www.assemblyscript.org/). Currently, SIMD is accessible through @thi.ng/simd from Node version 14.6.0.
 
-n-api
-
-but also SIMD. I convenient high-level abstraction for access to SIMD is [@thi.ng/simd
-](https://www.npmjs.com/package/@thi.ng/simd), whih uses [AssemblyScript](https://www.assemblyscript.org/) to access [WebAssembly SIMD](https://github.com/WebAssembly/simd).
-
-> [AssemblyScript](https://en.wikipedia.org/wiki/AssemblyScript) is a TypeScript-based programming language that is optimized for WebAssembly and compiled to WebAssembly using asc, the reference AssemblyScript compiler.
-
-"is our problem highly parallelizable? In this case, consider something like [CUDA](https://developer.nvidia.com/cuda-toolkit) to leverage GPU parallel processing"
+Finally, if our problem is highly parallelizable, we can consider frameworks like [CUDA](https://developer.nvidia.com/cuda-toolkit) that leverage the GPU.
 
 ## References
 
