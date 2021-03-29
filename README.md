@@ -126,10 +126,10 @@ Chart data is sampled to make chart visualization easier. We sample two ways (se
 Initially, we use [NodeCSV](https://www.npmjs.com/package/csv) to parse the CSV files, but CSV parsing takes a considerable amount of the processing time. To optimize, we also provide a manual parser which is indeed faster, but at maintenance cost. In a real-world solution we should consider:
 
 * What requirements do we have regarding how data is stored? Do we need CSV or can we use a binary format?
-* Using a library greatly reduces future maintenance cost
-* Sometimes, a custom solution is not inherently difficult. The custom solution in `ohlc_utils.js` uses a doubly-nested loop but this logic can be delegated to internal libraries and unit tested. See [RFC 4180](https://tools.ietf.org/html/rfc4180#section-2).
+* Using a library greatly reduces future maintenance cost.
+* Sometimes, a custom solution is not inherently difficult. The custom solution in `ohlc_utils.js` uses a doubly-nested loop, but this logic can be delegated to internal libraries and unit tested. See [RFC 4180](https://tools.ietf.org/html/rfc4180#section-2).
 
-For our large test file, the CSV parser library takes 10.08 seconds to run both benchmarks whereas the custom solution takes 6.86 seconds and is approximately 1.5 times faster. The reason the custom solution is faster likely is because there are far less event-driven callbacks passed between transformers, so there is fewer indirection. The parser can be toggled with the config option `USE_OPTIMIZED_CSV_PARSE`.
+For our large test file, the CSV parser library takes 10.08 seconds to run both benchmarks whereas the custom solution takes 6.86 seconds and is approximately 1.5 times faster. The reason the custom solution is faster likely is because there are far less event-driven callbacks passed between transformers so there is fewer indirection. The parser can be toggled with the config option `USE_OPTIMIZED_CSV_PARSE`.
 
 ## Results
 
@@ -179,7 +179,7 @@ If we want to optimize this problem further, we're just scratching the surface. 
 
 [Single instruction, multiple data (SIMD)](https://en.wikipedia.org/wiki/SIMD) implementations are available on almost all modern computing architectures and allow us to exploit instruction-level parallelism. Effectively, SIMD operates on wide registers of 128 bits and higher, which allows us to perform operations such as a single multiplication instruction on four 32-bit floats. Commonly they are accessed via [C Intrinsics](https://software.intel.com/sites/landingpage/IntrinsicsGuide/). One approach to using SIMD in Node.js is to use [n-api](https://nodejs.org/api/n-api.html) to access them natively.
 
-But using Data-Oriented approaches on 32-bit float arrays allows compilers, JITs, and hotspot optimizers to perform [Automatic vectorization](https://en.wikipedia.org/wiki/Automatic_vectorization). When a compiler performs auto-vectorizes, it automatically converts instructions to SIMD instructions. In ideal situations this can makes tight loops 4, 8, or 16 times faster. Auto-vectorization can be inconsistent, however, since it might only activate for simple loops. Generally, it's nice to have but we shouldn't be rely on it.
+But using Data-Oriented approaches on 32-bit float arrays allows compilers, JIT compilers, and hotspot optimizers to perform [Automatic vectorization](https://en.wikipedia.org/wiki/Automatic_vectorization). When a compiler auto-vectorizes, it automatically converts instructions to SIMD instructions. In ideal situations this can makes tight loops 4, 8, or 16 times faster. Auto-vectorization can be inconsistent, however, since it might only activate for simple loops. Generally, it's nice to have, but we shouldn't be rely on it.
 
 Access to SIMD has been targetted by [WebAssembly SIMD](https://github.com/WebAssembly/simd). In particular, one nice abstraction library is [@thi.ng/simd
 ](https://www.npmjs.com/package/@thi.ng/simd) which compiles using [AssemblyScript](https://www.assemblyscript.org/). Currently, SIMD is accessible through @thi.ng/simd from Node version 14.6.0.
