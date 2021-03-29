@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data-Oriented Design Benchmark</title>
+    <link rel="icon" href="./favicon.ico"/>
+  </head>
+  <body>
+    <h1>Data-Oriented Design Benchmark</h1>
+    <ul>
+      <li><a href="ohlcs-hl2.html">OHLCs - HL/2</a></li>
+      <li><a href="ohlcs-hlc3.html">OHLCs - HLC/3</a></li>
+      <li><a href="ohlcs-ohlc4.html">OHLCs - OHLC/4</a></li>
+      <li><a href="ohlcs-osc.html">OHLCs - Oscillators</a></li>
+      <li><a href="ohlc-system-hl2.html">OHLC System - HL/2</a></li>
+      <li><a href="ohlc-system-hlc3.html">OHLC System - HLC/3</a></li>
+      <li><a href="ohlc-system-ohlc4.html">OHLC System - OHLC/4</a></li>
+      <li><a href="ohlc-system-osc.html">OHLC System - Oscillators</a></li>
+    </ul>
+    <pre id="stats"></pre>
+    <pre id="ohlcsMedians"></pre>
+    <pre id="ohlcSystemMedians"></pre>
+    <script type="text/javascript">
+      fetch("data/stats.json")
+        .then(res => res.json())
+        .then(data => {
+          document.querySelector("#stats").innerText = `stats: ${JSON.stringify(data, null, 2)}`
+        })
+      fetch("data/ohlcs-medians.json")
+        .then(res => res.json())
+        .then(data => {
+          document.querySelector("#ohlcsMedians").innerText = `ohlcs-medians: ${JSON.stringify(data, null, 2)}`
+        })
+      fetch("data/ohlc-system-medians.json")
+        .then(res => res.json())
+        .then(data => {
+          document.querySelector("#ohlcSystemMedians").innerText = `ohlc-system-medians: ${JSON.stringify(data, null, 2)}`
+        })
+    </script>
+  </body>
+</html>

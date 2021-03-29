@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data-Oriented Design Benchmark</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <link rel="icon" href="./favicon.ico"/>
+  </head>
+  <body>
+    <canvas id="chart"></canvas>
+    <script type="text/javascript">
+      fetch("data/ohlc-system-hlc3.json")
+        .then(res => res.json())
+        .then(data => {
+          const ctx = document.getElementById('chart').getContext('2d')
+          const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: data.dates,
+              datasets: [
+                {
+                  label: 'Close',
+                  lineTension: 0,
+                  pointRadius: 0,
+                  backgroundColor: '#00000000',
+                  borderColor: '#000000',
+                  data: data.closes
+                },
+                {
+                  label: 'HLC/3 Average',
+                  lineTension: 0,
+                  pointRadius: 0,
+                  backgroundColor: '#00000000',
+                  borderColor: '#93c1fd',
+                  borderDash: [10, 10],
+                  data: data.hlc3Averages
+                },
+                {
+                  label: 'HLC/3 Stdev Upper',
+                  lineTension: 0,
+                  pointRadius: 0,
+                  backgroundColor: '#00000000',
+                  borderColor: '#93c1fd',
+                  data: data.hlc3StdevUppers
+                },
+                {
+                  label: 'HLC/3 Lower Stdev',
+                  lineTension: 0,
+                  pointRadius: 0,
+                  backgroundColor: '#00000000',
+                  borderColor: '#93c1fd',
+                  data: data.hlc3StdevLowers
+                }
+              ]
+            },
+            options: {
+              title: {
+                text: data.title,
+                display: true
+              }
+            }
+          })
+        })
+    </script>
+  </body>
+</html>

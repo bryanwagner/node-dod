@@ -1,0 +1,19 @@
+{
+  "name": "node-dod",
+  "version": "1.0.0",
+  "description": "Benchmark/Test of Data-Oriented Design using Node.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard"
+  },
+  "author": "Bryan Wagner",
+  "license": "ISC",
+  "devDependencies": {
+    "standard": "*"
+  },
+  "dependencies": {
+    "csv": "^5.4.0",
+    "dotenv": "^8.2.0",
+    "winston": "^3.3.3"
+  }
+}

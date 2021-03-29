@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data-Oriented Design Benchmark</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <link rel="icon" href="./favicon.ico"/>
+  </head>
+  <body>
+    <canvas id="chart"></canvas>
+    <script type="text/javascript">
+      fetch("data/ohlcs-osc.json")
+        .then(res => res.json())
+        .then(data => {
+          const ctx = document.getElementById('chart').getContext('2d')
+          const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: data.dates,
+              datasets: [
+                {
+                  label: 'Relative Strength Index',
+                  lineTension: 0,
+                  pointRadius: 0,
+                  backgroundColor: '#00000000',
+                  borderColor: '#cc0000',
+                  data: data.rsis
+                },
+                {
+                  label: 'Fast Stochastic',
+                  lineTension: 0,
+                  pointRadius: 0,
+                  backgroundColor: '#00000000',
+                  borderColor: '#0000cc',
+                  data: data.stochastics
+                },
+                {
+                  label: 'Money Flow Index',
+                  lineTension: 0,
+                  pointRadius: 0,
+                  backgroundColor: '#00000000',
+                  borderColor: '#00cc00',
+                  data: data.mfis
+                }
+              ]
+            },
+            options: {
+              title: {
+                text: data.title,
+                display: true
+              }
+            }
+          })
+        })
+    </script>
+  </body>
+</html>
