@@ -44,12 +44,12 @@ module.exports = class Ohlc {
   static calculateAll (ohlcs, window) {
     for (let startIndex = -(window - 1), targetIndex = 0, length = ohlcs.length; targetIndex < length; ++startIndex, ++targetIndex) {
       const clampedStartIndex = Math.max(0, startIndex)
-      ohlcs[targetIndex].calculatehl2()
-      Ohlc.calculatehl2Bands(ohlcs, clampedStartIndex, targetIndex)
+      ohlcs[targetIndex].calculateHl2()
+      Ohlc.calculateHl2Bands(ohlcs, clampedStartIndex, targetIndex)
       ohlcs[targetIndex].calculateHlc3()
       Ohlc.calculateHlc3Bands(ohlcs, clampedStartIndex, targetIndex)
-      ohlcs[targetIndex].calculateohlc4()
-      Ohlc.calculateohlc4Bands(ohlcs, clampedStartIndex, targetIndex)
+      ohlcs[targetIndex].calculateOhlc4()
+      Ohlc.calculateOhlc4Bands(ohlcs, clampedStartIndex, targetIndex)
       Ohlc.calculateRsis(ohlcs, clampedStartIndex, targetIndex)
       Ohlc.calculateStochastics(ohlcs, clampedStartIndex, targetIndex)
       Ohlc.calculateMfis(ohlcs, clampedStartIndex, targetIndex)
@@ -64,7 +64,7 @@ module.exports = class Ohlc {
     }
   }
 
-  calculatehl2 () {
+  calculateHl2 () {
     this.hl2 = (this.high + this.low) / 2.0
   }
 
@@ -72,11 +72,11 @@ module.exports = class Ohlc {
     this.hlc3 = (this.high + this.low + this.close) / 3.0
   }
 
-  calculateohlc4 () {
+  calculateOhlc4 () {
     this.ohlc4 = (this.open + this.high + this.low + this.close) / 4.0
   }
 
-  static calculatehl2Bands (ohlcs, startIndex, targetIndex) {
+  static calculateHl2Bands (ohlcs, startIndex, targetIndex) {
     // Welford's Online Algorithm (https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm)
     let average = 0.0
     let averageSq = 0.0
@@ -114,7 +114,7 @@ module.exports = class Ohlc {
     ohlc.hlc3StdevLower = average - 2.0 * stdev
   }
 
-  static calculateohlc4Bands (ohlcs, startIndex, targetIndex) {
+  static calculateOhlc4Bands (ohlcs, startIndex, targetIndex) {
     // Welford's Online Algorithm (https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm)
     let average = 0.0
     let averageSq = 0.0

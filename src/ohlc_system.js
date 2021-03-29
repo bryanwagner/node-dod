@@ -52,12 +52,12 @@ module.exports = class OhlcSystem {
    * @returns object containing the calculated medians
    */
   calculateAll (window) {
-    this.calculatehl2s(window)
-    this.calculatehl2Bands(window)
+    this.calculateHl2s(window)
+    this.calculateHl2Bands(window)
     this.calculateHlc3s(window)
     this.calculateHlc3Bands(window)
-    this.calculateohlc4s(window)
-    this.calculateohlc4Bands(window)
+    this.calculateOhlc4s(window)
+    this.calculateOhlc4Bands(window)
     this.calculateRsis(window)
     this.calculateStochastics(window)
     this.calculateMfis(window)
@@ -71,7 +71,7 @@ module.exports = class OhlcSystem {
     }
   }
 
-  calculatehl2s () {
+  calculateHl2s () {
     const hl2s = this.hl2s
     const highs = this.highs
     const lows = this.lows
@@ -90,7 +90,7 @@ module.exports = class OhlcSystem {
     }
   }
 
-  calculateohlc4s () {
+  calculateOhlc4s () {
     const ohlc4s = this.ohlc4s
     const opens = this.opens
     const highs = this.highs
@@ -101,7 +101,7 @@ module.exports = class OhlcSystem {
     }
   }
 
-  calculatehl2Bands (window) {
+  calculateHl2Bands (window) {
     const hl2s = this.hl2s
     const hl2Averages = this.hl2Averages
     const hl2StdevUppers = this.hl2StdevUppers
@@ -149,7 +149,7 @@ module.exports = class OhlcSystem {
     }
   }
 
-  calculateohlc4Bands (window) {
+  calculateOhlc4Bands (window) {
     const ohlc4s = this.ohlc4s
     const ohlc4Averages = this.ohlc4Averages
     const ohlc4StdevUppers = this.ohlc4StdevUppers
