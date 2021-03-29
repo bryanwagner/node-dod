@@ -123,7 +123,7 @@ Chart data is sampled to make chart visualization easier. We sample two ways (se
 
 ### CSV Parsing Considerations
 
-Initially, we use [NodeCSV](https://www.npmjs.com/package/csv) to parse the CSV files, but CSV parsing takes a considerable amount of the processing time. To optimize, we also provided a manual parser which is indeed faster, but at maintenance cost. In a real-world solution we should consider:
+Initially, we use [NodeCSV](https://www.npmjs.com/package/csv) to parse the CSV files, but CSV parsing takes a considerable amount of the processing time. To optimize, we also provide a manual parser which is indeed faster, but at maintenance cost. In a real-world solution we should consider:
 
 * What requirements do we have regarding how data is stored? Do we need CSV or can we use a binary format?
 * Using a library greatly reduces future maintenance cost
