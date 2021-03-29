@@ -14,7 +14,7 @@ $ node index.js
 
 ## Problem Domain
 
-[Technical Analysis](https://en.wikipedia.org/wiki/Technical_analysis) is a concept in the financial markets, such as stock market and cryptocurrency exchanges, referring to studies of transformations of trade price and volume. We use this domain to implement a benchmark that tests two orthogonal software design approaches: [Object-Oriented Design](https://en.wikipedia.org/wiki/Object-oriented_design) and [Data-Oriented Design](https://en.wikipedia.org/wiki/Data-oriented_design). The latter approach is lesser known, and became more popular with the efforts of video game engine developers. The objective of Data-Oriented Design is to maximize the throughout of computer hardware processing by designing solutions as a series of data transforms. Due to the [principle of locality](https://en.wikipedia.org/wiki/Locality_of_reference), it can be leveraged at most levels of abstraction, including virtualization.
+[Technical Analysis](https://en.wikipedia.org/wiki/Technical_analysis) is a concept in the financial markets, such as stock market and cryptocurrency exchanges, referring to studies of transformations of trade price and volume. We use this domain to implement a benchmark that tests two orthogonal software design approaches: [Object-Oriented Design](https://en.wikipedia.org/wiki/Object-oriented_design) and [Data-Oriented Design](https://en.wikipedia.org/wiki/Data-oriented_design). The latter approach is lesser known, and became more popular with the efforts of video game engine developers. The objective of Data-Oriented Design is to maximize the throughput of computer hardware processing by designing solutions as a series of data transforms. Due to the [principle of locality](https://en.wikipedia.org/wiki/Locality_of_reference), it can be leveraged at most levels of abstraction, including virtualization.
 
 OHLC Sample data for Bitcoin (BTC/USD) was downloaded in CSV format from [Crytpo Data Download](http://www.cryptodatadownload.com/data/gemini/). We perform the following calculations using both software design approaches:
 
@@ -55,7 +55,7 @@ class Ohlc {
 
 ### Struct-of-Arrays: Data-Oriented Design
 
-The Data-Oriented Design implements a system based on arrays of separate OHLC arrays, i.e. Struct-of-Arrays. It is important to note that the memory is allocated in a common [memory arena](https://en.wikipedia.org/wiki/Region-based_memory_management) which maximizes locality as memory is usually managed by pages in the operating system and we want to avoid segmentation.
+The Data-Oriented Design implements a system based on arrays of separate OHLC arrays, i.e. Struct-of-Arrays. It is important to note that the memory is allocated in a common [memory arena](https://en.wikipedia.org/wiki/Region-based_memory_management) which maximizes locality as memory is usually managed by pages in the operating system, and we want to avoid segmentation.
 
 Also note that it is common for highly interdependent types of data to interleave values in one array, such as 2D and 3D world-space vectors. Here we keep all values separate to illustrate performance differences.
 
@@ -81,7 +81,7 @@ class OhlcSystem {
 }
 ```
 
-The idea of modelling such an approach as a "system" is based on the concept of [Entity Component Systems](https://en.wikipedia.org/wiki/Entity_component_system).
+The idea of modeling such an approach as a "system" is based on the concept of [Entity Component Systems](https://en.wikipedia.org/wiki/Entity_component_system).
 
 * An *entity* is represented by an identifier (e.g. an integer ID) that maps to components.
 * A *component* is a property of one or more entities represented by data.
@@ -93,7 +93,7 @@ ECS systems are best implemented as arrays of data transformations where compone
 
 A useful resource when thinking about software performance is [Latency Numbers Every Programmer Should Know](https://gist.github.com/jboner/2841832). These are back-of-the-envelope figures which are generally true across modern computing architectures. Differences between orders of magnitude between different types of cache and memory can be startling when viewing them as animations.
 
-In addition to maximizing memory cache locality, Data-Oriented solutions also tend to maximize instruction cache (icache) locality, since they perform the same operations many times one or more arrays when calculating a "system component".
+In addition to maximizing memory cache locality, Data-Oriented solutions also tend to maximize instruction cache (icache) locality, since they perform the same operations many times on one or more arrays when calculating a "system component".
 
 Data-Oriented Design is an approach to highly computational problems, but using it as a conceptual tool can be just as useful. For example, using a SQL statement to only select one column from a database as opposed to using an ORM mapped to a full data model will result in different performance profiles.
 
@@ -123,13 +123,13 @@ Chart data is sampled to make chart visualization easier. We sample two ways (se
 
 ### CSV Parsing Considerations
 
-Initially, we use [NodeCSV](https://www.npmjs.com/package/csv) to parse the CSV files, but CSV parsing takes a considerable amount of the processing time. To optimize, we also provided a manual parser which is indeed faster, but at maintenance cost. In a real-world solution we should consider:
+Initially, we use [NodeCSV](https://www.npmjs.com/package/csv) to parse the CSV files, but CSV parsing takes a considerable amount of the processing time. To optimize, we also provide a manual parser which is indeed faster, but at maintenance cost. In a real-world solution we should consider:
 
 * What requirements do we have regarding how data is stored? Do we need CSV or can we use a binary format?
-* Using a library greatly reduces future maintenance cost
-* Sometimes, a custom solution is not inherently difficult. The custom solution in `ohlc_utils.js` uses a doubly-nested loop but this logic can be delegated to internal libraries and unit tested. See [RFC 4180](https://tools.ietf.org/html/rfc4180#section-2).
+* Using a library greatly reduces future maintenance cost.
+* Sometimes, a custom solution is not inherently difficult. The custom solution in `ohlc_utils.js` uses a doubly-nested loop, but this logic can be delegated to internal libraries and unit tested. See [RFC 4180](https://tools.ietf.org/html/rfc4180#section-2).
 
-For our large test file, the CSV parser library takes 10.08 seconds to run both benchmarks whereas the custom solution takes 6.86 seconds and is approximately 1.5 times faster. The reason the custom solution is faster likely is because there are far less event-driven callbacks passed between transformers, so there is fewer indirection. The parser can be toggled with the config option `USE_OPTIMIZED_CSV_PARSE`.
+For our large test file, the CSV parser library takes 10.08 seconds to run both benchmarks whereas the custom solution takes 6.86 seconds and is approximately 1.5 times faster. The reason the custom solution is faster likely is because there are far less event-driven callbacks passed between transformers so there is fewer indirection. The parser can be toggled with the config option `USE_OPTIMIZED_CSV_PARSE`.
 
 ## Results
 
@@ -179,7 +179,7 @@ If we want to optimize this problem further, we're just scratching the surface. 
 
 [Single instruction, multiple data (SIMD)](https://en.wikipedia.org/wiki/SIMD) implementations are available on almost all modern computing architectures and allow us to exploit instruction-level parallelism. Effectively, SIMD operates on wide registers of 128 bits and higher, which allows us to perform operations such as a single multiplication instruction on four 32-bit floats. Commonly they are accessed via [C Intrinsics](https://software.intel.com/sites/landingpage/IntrinsicsGuide/). One approach to using SIMD in Node.js is to use [n-api](https://nodejs.org/api/n-api.html) to access them natively.
 
-But using Data-Oriented approaches on 32-bit float arrays allows compilers, JITs, and hotspot optimizers to perform [Automatic vectorization](https://en.wikipedia.org/wiki/Automatic_vectorization). When a compiler performs auto-vectorizes, it automatically converts instructions to SIMD instructions. In ideal situations this can makes tight loops 4, 8, or 16 times faster. Auto-vectorization can be inconsistent, however, since it might only activate for simple loops. Generally, it's nice to have but we shouldn't be rely on it.
+But using Data-Oriented approaches on 32-bit float arrays allows compilers, JIT compilers, and hotspot optimizers to perform [Automatic vectorization](https://en.wikipedia.org/wiki/Automatic_vectorization). When a compiler auto-vectorizes, it automatically converts instructions to SIMD instructions. In ideal situations this can makes tight loops 4, 8, or 16 times faster. Auto-vectorization can be inconsistent, however, since it might only activate for simple loops. Generally, it's nice to have, but we shouldn't be rely on it.
 
 Access to SIMD has been targetted by [WebAssembly SIMD](https://github.com/WebAssembly/simd). In particular, one nice abstraction library is [@thi.ng/simd
 ](https://www.npmjs.com/package/@thi.ng/simd) which compiles using [AssemblyScript](https://www.assemblyscript.org/). Currently, SIMD is accessible through @thi.ng/simd from Node version 14.6.0.
