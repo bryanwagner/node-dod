@@ -55,7 +55,7 @@ class Ohlc {
 
 ### Struct-of-Arrays: Data-Oriented Design
 
-The Data-Oriented Design implements a system based on arrays of separate OHLC arrays, i.e. Struct-of-Arrays. It is important to note that the memory is allocated in a common [memory arena](https://en.wikipedia.org/wiki/Region-based_memory_management) which maximizes locality as memory is usually managed by pages in the operating system and we want to avoid segmentation.
+The Data-Oriented Design implements a system based on arrays of separate OHLC arrays, i.e. Struct-of-Arrays. It is important to note that the memory is allocated in a common [memory arena](https://en.wikipedia.org/wiki/Region-based_memory_management) which maximizes locality as memory is usually managed by pages in the operating system, and we want to avoid segmentation.
 
 Also note that it is common for highly interdependent types of data to interleave values in one array, such as 2D and 3D world-space vectors. Here we keep all values separate to illustrate performance differences.
 
@@ -81,7 +81,7 @@ class OhlcSystem {
 }
 ```
 
-The idea of modelling such an approach as a "system" is based on the concept of [Entity Component Systems](https://en.wikipedia.org/wiki/Entity_component_system).
+The idea of modeling such an approach as a "system" is based on the concept of [Entity Component Systems](https://en.wikipedia.org/wiki/Entity_component_system).
 
 * An *entity* is represented by an identifier (e.g. an integer ID) that maps to components.
 * A *component* is a property of one or more entities represented by data.
