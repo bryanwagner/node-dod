@@ -175,7 +175,7 @@ In both cases total time increases, but the ratio is closer: 10.20 seconds vs. 6
 
 ## Further Improvements
 
-If we want to optimize this problem further, we're just scratching the surface. The first consideration is if we really need 64-bit floats for our calculations. In many cases (including this one) 32-bit floats have enough accuracy for the problem. If we use `Float32Array` instances in `OhlcSystem` instead, we have a higher liklihood of being able to support SIMD.
+If we want to optimize this problem further, we're just scratching the surface. The first consideration is if we really need 64-bit floats for our calculations. In many cases (including this one) 32-bit floats have enough accuracy for the problem. If we use `Float32Array` instances in `OhlcSystem` instead, we have a higher likelihood of being able to support SIMD.
 
 [Single instruction, multiple data (SIMD)](https://en.wikipedia.org/wiki/SIMD) implementations are available on almost all modern computing architectures and allow us to exploit instruction-level parallelism. Effectively, SIMD operates on wide registers of 128 bits and higher, which allows us to perform operations such as a single multiplication instruction on four 32-bit floats. Commonly they are accessed via [C Intrinsics](https://software.intel.com/sites/landingpage/IntrinsicsGuide/). One approach to using SIMD in Node.js is to use [n-api](https://nodejs.org/api/n-api.html) to access them natively.
 
