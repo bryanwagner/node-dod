@@ -16,7 +16,7 @@ $ node index.js
 
 [Technical Analysis](https://en.wikipedia.org/wiki/Technical_analysis) is a concept in the financial markets, such as stock market and cryptocurrency exchanges, referring to studies of transformations of trade price and volume. We use this domain to implement a benchmark that tests two orthogonal software design approaches: [Object-Oriented Design](https://en.wikipedia.org/wiki/Object-oriented_design) and [Data-Oriented Design](https://en.wikipedia.org/wiki/Data-oriented_design). The latter approach is lesser known, and became more popular with the efforts of video game engine developers. The objective of Data-Oriented Design is to maximize the throughput of computer hardware processing by designing solutions as a series of data transforms. Due to the [principle of locality](https://en.wikipedia.org/wiki/Locality_of_reference), it can be leveraged at most levels of abstraction, including virtualization.
 
-OHLC Sample data for Bitcoin (BTC/USD) was downloaded in CSV format from [Crytpo Data Download](http://www.cryptodatadownload.com/data/gemini/). We perform the following calculations using both software design approaches:
+OHLC Sample data for Bitcoin (BTC/USD) was downloaded in CSV format from [Crypto Data Download](http://www.cryptodatadownload.com/data/gemini/). We perform the following calculations using both software design approaches:
 
 * [Typical Price](https://en.wikipedia.org/wiki/Typical_price)
 * [Bollinger Bands](https://en.wikipedia.org/wiki/Bollinger_Bands)
@@ -51,11 +51,11 @@ class Ohlc {
 }
 ```
 
- The actual implementation contains more values, and in a  typical Object-Oriented Design the fields likely would have more encapsulation, but to demonstrate performance differences we keep the model flat so it has the least indirection and best chance to compete.
+The actual implementation contains more values, and in a  typical Object-Oriented Design the fields likely would have more encapsulation, but to demonstrate performance differences we keep the model flat so it has the least indirection and best chance to compete.
 
 ### Struct-of-Arrays: Data-Oriented Design
 
-The Data-Oriented Design implements a system based on arrays of separate OHLC arrays, i.e. Struct-of-Arrays. It is important to note that the memory is allocated in a common [memory arena](https://en.wikipedia.org/wiki/Region-based_memory_management) which maximizes locality as memory is usually managed by pages in the operating system, and we want to avoid segmentation.
+The Data-Oriented Design approach implements a system based on arrays of separate OHLC arrays, i.e. Struct-of-Arrays. It is important to note that the memory is allocated in a common [memory arena](https://en.wikipedia.org/wiki/Region-based_memory_management) which maximizes locality as memory is usually managed by pages in the operating system, and we want to avoid segmentation.
 
 Also note that it is common for highly interdependent types of data to interleave values in one array, such as 2D and 3D world-space vectors. Here we keep all values separate to illustrate performance differences.
 
@@ -179,12 +179,16 @@ If we want to optimize this problem further, we're just scratching the surface. 
 
 [Single instruction, multiple data (SIMD)](https://en.wikipedia.org/wiki/SIMD) implementations are available on almost all modern computing architectures and allow us to exploit instruction-level parallelism. Effectively, SIMD operates on wide registers of 128 bits and higher, which allows us to perform operations such as a single multiplication instruction on four 32-bit floats. Commonly they are accessed via [C Intrinsics](https://software.intel.com/sites/landingpage/IntrinsicsGuide/). One approach to using SIMD in Node.js is to use [n-api](https://nodejs.org/api/n-api.html) to access them natively.
 
-But using Data-Oriented approaches on 32-bit float arrays allows compilers, JIT compilers, and hotspot optimizers to perform [Automatic vectorization](https://en.wikipedia.org/wiki/Automatic_vectorization). When a compiler auto-vectorizes, it automatically converts instructions to SIMD instructions. In ideal situations this can makes tight loops 4, 8, or 16 times faster. Auto-vectorization can be inconsistent, however, since it might only activate for simple loops. Generally, it's nice to have, but we shouldn't rely on it.
+But using Data-Oriented approaches on 32-bit float arrays allows compilers, JIT compilers, and hotspot optimizers to perform [Automatic vectorization](https://en.wikipedia.org/wiki/Automatic_vectorization). When a compiler auto-vectorizes, it automatically converts instructions to SIMD instructions. In ideal situations this can make tight loops 4, 8, or 16 times faster. Auto-vectorization can be inconsistent, however, since it might only activate for simple loops. Generally, it's nice to have, but we shouldn't rely on it.
 
 Access to SIMD has been targeted by [WebAssembly SIMD](https://github.com/WebAssembly/simd). In particular, one nice abstraction library is [@thi.ng/simd
 ](https://www.npmjs.com/package/@thi.ng/simd) which compiles using [AssemblyScript](https://www.assemblyscript.org/). Currently, SIMD is accessible through @thi.ng/simd from Node version 14.6.0.
 
 Finally, if our problem is highly parallelizable, we can consider frameworks like [CUDA](https://developer.nvidia.com/cuda-toolkit) that leverage the GPU.
+
+## N.B.
+
+Data-Oriented Design is not synonymous with Struct-of-Arrays; the language in this document contrasts it with Object-Oriented Design, but it encompasses a broader approach to solution modelling.
 
 ## References
 
