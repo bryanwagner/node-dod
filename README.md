@@ -188,7 +188,7 @@ Finally, if our problem is highly parallelizable, we can consider frameworks lik
 
 ## N.B.
 
-Data-Oriented Design is not synonymous with Struct-of-Arrays; the language in this document contrasts it with Object-Oriented Design, but it encompasses a broader approach to solution modelling.
+Data-Oriented Design is not synonymous with Struct-of-Arrays; the language in this document contrasts it with Object-Oriented Design, but it encompasses a broader approach to solution modeling.
 
 ## References
 
